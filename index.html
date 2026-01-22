@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Drag Ball Game</title>
+<style>
+  body {
+    margin: 0;
+    background: #222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  canvas {
+    background: #111;
+    border: 2px solid #fff;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game" width="600" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+// шарик (dragball)
+const ball = {
+  x: 100,
+  y: 200,
+  r: 20,
+  dragging: false
+};
+
+// цель
+const target = {
+  x: 450,
+  y: 150,
+  w: 100,
+  h: 100
+};
+
+let win = false;
+
+// отрисовка
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // цель
+  ctx.fillStyle = win ? "lime" : "orange";
+  ctx.fillRect(target.x, target.y, target.w, target.h);
+
+  // шарик
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+  ctx.fillStyle = "cyan";
+  ctx.fill();
+  ctx.closePath();
+
+  // текст
+  ctx.fillStyle = "white";
+  ctx.font = "18px Arial";
+  ctx.fillText(
+    win ? "ПОБЕДА!" : "Перетащи шарик в квадрат",
+    20,
+    30
+  );
+
+  requestAnimationFrame(draw);
+}
+
+// проверка попадания
+function checkWin() {
+  if (
+    ball.x > target.x &&
+    ball.x < target.x + target.w &&
+    ball.y > target.y &&
+    ball.y < target.y + target.h
+  ) {
+    win = true;
+  }
+}
+
+// координаты мыши/тача
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  return { x, y };
+}
+
+// события
+canvas.addEventListener("mousedown", startDrag);
+canvas.addEventListener("touchstart", startDrag);
+
+canvas.addEventListener("mousemove", drag);
+canvas.addEventListener("touchmove", drag);
+
+canvas.addEventListener("mouseup", endDrag);
+canvas.addEventListener("touchend", endDrag);
+
+function startDrag(e) {
+  const p = getPos(e);
+  const dist = Math.hypot(p.x - ball.x, p.y - ball.y);
+  if (dist < ball.r) {
+    ball.dragging = true;
+  }
+}
+
+function drag(e) {
+  if (!ball.dragging || win) return;
+  const p = getPos(e);
+  ball.x = p.x;
+  ball.y = p.y;
+  checkWin();
+}
+
+function endDrag() {
+  ball.dragging = false;
+}
+
+draw();
+</script>
+
+</body>
+</html>
